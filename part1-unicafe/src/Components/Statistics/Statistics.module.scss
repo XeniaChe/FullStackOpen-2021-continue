@@ -1,0 +1,24 @@
+.table {
+	table-layout: fixed;
+	width: 100%;
+	border-collapse: collapse;
+	border: 3px solid purple;
+	thead {
+		background-color: rgba(purple,.5);
+	}
+	
+	thead th:nth-child(1) {
+		width: 80%;
+		padding: 15px;
+	}
+	td{
+		padding: 10px;
+		padding-left: 40px;
+	}
+}
+
+h2{
+	color: whitesmoke;
+	background-color: rgba(purple,.5);
+	padding: 20px;
+}
