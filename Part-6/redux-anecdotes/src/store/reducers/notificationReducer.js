@@ -1,5 +1,4 @@
 /////////////////////////////// Action Creators
-/// TEST TEST
 const showNotifMessage = (msg) => ({
   type: 'NOTIFICATION/SHOW_MESSAGE',
   payload: { message: msg },

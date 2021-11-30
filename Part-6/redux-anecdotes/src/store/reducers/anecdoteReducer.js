@@ -1,13 +1,7 @@
 // Services AXIOS
 import anecdoteSrv from '../../services/anecdotes';
 
-///////Action Creators
-/* export const addVote = (id) => ({
-  type: 'ANECDOTES/ADD_VOTE',
-  id,
-});
- */
-
+/////////////////////////////// Action Creators
 const addVote = (matchedAnecdote) => ({
   type: 'ANECDOTES/ADD_VOTE',
   matchedAnecdote,
@@ -64,7 +58,7 @@ export const addVoteAsync = (matchedAnecdote) => {
   };
 };
 
-///////REDUSER
+/////////////////////////////// REDUSER
 /* const anecdotesAtStart = [
   'If it hurts, do it more often',
   'Adding manpower to a late software project makes it later!',
@@ -89,9 +83,6 @@ const getId = () => (100000 * Math.random()).toFixed(0);
 const initialState = [];
 
 const reducer = (state = initialState, action) => {
-  console.log('state now: ', state);
-  console.log('action', action);
-
   switch (action.type) {
     case 'ANECDOTES/GET_INITIAL_NOTES': {
       return [...action.payload.data];

@@ -1,4 +1,4 @@
-import React /* , { useEffect }  */ from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { addVoteAsync } from '../store/reducers/anecdoteReducer';
 import { manageNotifAsync } from '../store/reducers/notificationReducer';
@@ -26,14 +26,6 @@ const AnecdoteList = () => {
     anecdote.content.toLowerCase().includes(filterValue.toLowerCase())
   );
   let anecdotesList = filterValue ? filteredAnecdotes : anecdotesSorted;
-
-  /* useEffect(() => {
-    console.log('Show NOTIFICATION from USEEFFECT');
-    if (filterValue && !filteredAnecdotes.length) {
-      const message = 'There is no matching items in the list';
-      dispatch(manageNotifAsync(message, 3));
-    }
-  }, [filterValue, dispatch, filteredAnecdotes]); */
 
   return (
     <>
