@@ -1,39 +1,26 @@
-import React /* , { useEffect }  */ from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React from 'react';
+import { connect } from 'react-redux';
 import { addVoteAsync } from '../store/reducers/anecdoteReducer';
 import { manageNotifAsync } from '../store/reducers/notificationReducer';
 
-const AnecdoteList = () => {
-  const anecdotes = useSelector((state) => state.anecdotes);
-  const filterValue = useSelector((state) => state.filter);
-
-  const dispatch = useDispatch();
-
+const AnecdoteList = (props) => {
   const voteHandler = (id) => {
-    const copyAnecdotes = [...anecdotes];
+    const copyAnecdotes = [...props.anecdotes];
     const matchedObject = copyAnecdotes.find((anecdote) => anecdote.id === id);
 
-    dispatch(addVoteAsync(matchedObject));
-    dispatch(manageNotifAsync(`You voted for: ${matchedObject.content}`, 2));
+    props.addVoteAsync(matchedObject);
+    props.manageNotifAsync(`You voted for: ${matchedObject.content}`, 2);
   };
 
   // Sorting by votes number
-  const anecdotesCopy = [...anecdotes];
+  const anecdotesCopy = [...props.anecdotes];
   const anecdotesSorted = anecdotesCopy.sort((a, b) => a.votes - b.votes);
 
   // Filtering
   const filteredAnecdotes = anecdotesSorted.filter((anecdote) =>
-    anecdote.content.toLowerCase().includes(filterValue.toLowerCase())
+    anecdote.content.toLowerCase().includes(props.filterValue.toLowerCase())
   );
-  let anecdotesList = filterValue ? filteredAnecdotes : anecdotesSorted;
-
-  /* useEffect(() => {
-    console.log('Show NOTIFICATION from USEEFFECT');
-    if (filterValue && !filteredAnecdotes.length) {
-      const message = 'There is no matching items in the list';
-      dispatch(manageNotifAsync(message, 3));
-    }
-  }, [filterValue, dispatch, filteredAnecdotes]); */
+  let anecdotesList = props.filterValue ? filteredAnecdotes : anecdotesSorted;
 
   return (
     <>
@@ -50,4 +37,22 @@ const AnecdoteList = () => {
   );
 };
 
-export default AnecdoteList;
+const mapPropsToState = (state) => {
+  return {
+    anecdotes: state.anecdotes,
+    filterValue: state.filter,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    addVoteAsync: (matchObj) => {
+      dispatch(addVoteAsync(matchObj));
+    },
+    manageNotifAsync: (content, sec) => {
+      dispatch(manageNotifAsync(content, sec));
+    },
+  };
+};
+
+export default connect(mapPropsToState, mapDispatchToProps)(AnecdoteList);
