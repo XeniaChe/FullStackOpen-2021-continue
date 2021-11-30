@@ -1,9 +1,4 @@
 /////////////////////////////// Action Creators
-// export const addVoteNotif = (matchedObject) => ({
-//   type: 'NOTIFICATION/ADD_VOTE',
-//   payload: { matchedObject },
-// });
-
 const showNotifMessage = (msg) => ({
   type: 'NOTIFICATION/SHOW_MESSAGE',
   payload: { message: msg },
