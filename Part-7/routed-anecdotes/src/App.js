@@ -4,8 +4,8 @@ import {
   Switch,
   Route,
   Link,
-  useRouteMatch,
   useParams,
+  useHistory,
 } from 'react-router-dom';
 
 const Menu = () => {
@@ -51,7 +51,7 @@ const AnecdoteList = ({ anecdotes }) => {
       <ul>
         {anecdotes.map((anecdote) => (
           <li key={anecdote.id}>
-            <Link to={`anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
+            <Link to={`/anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
           </li>
         ))}
       </ul>
@@ -95,19 +95,29 @@ const Footer = () => (
   </div>
 );
 
-const CreateNew = (props) => {
+const CreateNew = ({ addNew, setNotification }) => {
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
   const [info, setInfo] = useState('');
 
+  const history = useHistory();
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    props.addNew({
+    addNew({
       content,
       author,
       info,
       votes: 0,
     });
+
+    history.push('/');
+
+    setNotification(`A new anecdote ${content} has just been created!`);
+
+    setTimeout(() => {
+      setNotification(``);
+    }, 10000);
   };
 
   return (
@@ -186,15 +196,16 @@ const App = () => {
     <div>
       <h1>Software anecdotes</h1>
       <Menu />
+      {notification ? <p>{notification}</p> : null}
       <Switch>
         <Route path='/' exact>
           <AnecdoteList anecdotes={anecdotes} />
         </Route>
-        <Route path='anecdotes/:id'>
+        <Route path='/anecdotes/:id'>
           <Anecdote anecdotes={anecdotes} />
         </Route>
         <Route path='/create-new'>
-          <CreateNew addNew={addNew} />
+          <CreateNew addNew={addNew} setNotification={setNotification} />
         </Route>
         <Route path='/about'>
           <About />
