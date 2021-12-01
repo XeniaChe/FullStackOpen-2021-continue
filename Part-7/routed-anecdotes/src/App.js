@@ -32,6 +32,7 @@ const Menu = () => {
 
 const Anecdote = ({ anecdotes }) => {
   const { id } = useParams();
+  console.log({ id });
   const anecdote = anecdotes.find((el) => el.id === id);
 
   return (
