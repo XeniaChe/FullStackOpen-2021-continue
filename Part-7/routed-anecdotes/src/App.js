@@ -45,25 +45,16 @@ const Anecdote = ({ anecdotes }) => {
 };
 
 const AnecdoteList = ({ anecdotes }) => {
-  let { path, url } = useRouteMatch();
-
   return (
     <div>
       <h2>Anecdotes</h2>
       <ul>
         {anecdotes.map((anecdote) => (
           <li key={anecdote.id}>
-            <Link to={`${url}${anecdote.id}`}>{anecdote.content}</Link>
+            <Link to={`anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
           </li>
         ))}
       </ul>
-      <div>
-        <Switch>
-          <Route path={`${path}:id`}>
-            <Anecdote anecdotes={anecdotes} />
-          </Route>
-        </Switch>
-      </div>
     </div>
   );
 };
@@ -196,8 +187,11 @@ const App = () => {
       <h1>Software anecdotes</h1>
       <Menu />
       <Switch>
-        <Route path='/'>
+        <Route path='/' exact>
           <AnecdoteList anecdotes={anecdotes} />
+        </Route>
+        <Route path='anecdotes/:id'>
+          <Anecdote anecdotes={anecdotes} />
         </Route>
         <Route path='/create-new'>
           <CreateNew addNew={addNew} />
