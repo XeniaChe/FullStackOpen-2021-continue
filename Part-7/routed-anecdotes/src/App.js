@@ -8,6 +8,9 @@ import {
   useHistory,
 } from 'react-router-dom';
 
+// Custom Hooks
+import { useField } from '../src/hooks/useField';
+
 const Menu = () => {
   const padding = {
     paddingRight: 5,
@@ -96,18 +99,20 @@ const Footer = () => (
 );
 
 const CreateNew = ({ addNew, setNotification }) => {
-  const [content, setContent] = useState('');
-  const [author, setAuthor] = useState('');
-  const [info, setInfo] = useState('');
+  // Custom HOOK
+  const content = useField('content', 'text');
+  const author = useField('author', 'text');
+  const info = useField('info', 'url');
 
   const history = useHistory();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     addNew({
-      content,
-      author,
-      info,
+      content: content.value,
+      author: author.value,
+      info: info.value,
       votes: 0,
     });
 
@@ -120,6 +125,12 @@ const CreateNew = ({ addNew, setNotification }) => {
     }, 10000);
   };
 
+  const onResetFieldsHandler = () => {
+    content.onReset();
+    author.onReset();
+    info.onReset();
+  };
+
   return (
     <div>
       <h2>create a new anecdote</h2>
@@ -127,28 +138,24 @@ const CreateNew = ({ addNew, setNotification }) => {
         <div>
           content
           <input
-            name='content'
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            name={content.name}
+            value={content.value}
+            onChange={content.onChange}
+            type={content.type}
           />
         </div>
         <div>
           author
-          <input
-            name='author'
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-          />
+          <input {...author} />
         </div>
         <div>
           url for more info
-          <input
-            name='info'
-            value={info}
-            onChange={(e) => setInfo(e.target.value)}
-          />
+          <input {...info} />
         </div>
-        <button>create</button>
+        <button type='submit'>create</button>
+        <button onClick={onResetFieldsHandler} type='reset'>
+          reset
+        </button>
       </form>
     </div>
   );
