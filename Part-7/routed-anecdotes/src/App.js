@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   NavLink,
-  Switch,
+  Routes,
   Route,
   Link,
-  useRouteMatch,
-  useParams,
+  // useParams,
+  Outlet,
+  useMatch,
+  useNavigate,
 } from 'react-router-dom';
+import Context from './context';
 
 const Menu = () => {
   const padding = {
@@ -30,39 +33,34 @@ const Menu = () => {
   );
 };
 
-const Anecdote = ({ anecdotes }) => {
-  const { id } = useParams();
-  const anecdote = anecdotes.find((el) => el.id === id);
+const Anecdote = ({ anecdote }) => {
+  // BEfore useMatch()
+  // const { id } = useParams();
+  // const anecdote = anecdotes.find((el) => el.id === id);
 
   return (
     <div>
       <h1>{anecdote.content}</h1>
       <p>Has {anecdote.votes} votes</p>
       <p>For more info see {anecdote.info} votes</p>
-      <p>Anecdote's id: {id}</p>
+      <p>Anecdote's id: {anecdote.id}</p>
     </div>
   );
 };
 
 const AnecdoteList = ({ anecdotes }) => {
-  let { path, url } = useRouteMatch();
-
   return (
     <div>
       <h2>Anecdotes</h2>
       <ul>
         {anecdotes.map((anecdote) => (
           <li key={anecdote.id}>
-            <Link to={`${url}${anecdote.id}`}>{anecdote.content}</Link>
+            <Link to={`/anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
           </li>
         ))}
       </ul>
       <div>
-        <Switch>
-          <Route path={`${path}:id`}>
-            <Anecdote anecdotes={anecdotes} />
-          </Route>
-        </Switch>
+        <Outlet />
       </div>
     </div>
   );
@@ -108,6 +106,11 @@ const CreateNew = (props) => {
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
   const [info, setInfo] = useState('');
+  //To redirect after submit
+  const navigate = useNavigate();
+
+  // Update the state in App with useContext()
+  const { newAncdCreated, setNewAncdCreated } = useContext(Context);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -117,6 +120,12 @@ const CreateNew = (props) => {
       info,
       votes: 0,
     });
+    // Setting newAncdCreated state in App component using useContext
+    setNewAncdCreated(content);
+    navigate('/', { content });
+    setTimeout(() => {
+      setNewAncdCreated('');
+    }, 3000);
   };
 
   return (
@@ -171,8 +180,6 @@ const App = () => {
     },
   ]);
 
-  const [notification, setNotification] = useState('');
-
   const addNew = (anecdote) => {
     anecdote.id = (Math.random() * 10000).toFixed(0);
     setAnecdotes(anecdotes.concat(anecdote));
@@ -191,24 +198,39 @@ const App = () => {
     setAnecdotes(anecdotes.map((a) => (a.id === id ? voted : a)));
   };
 
-  return (
-    <div>
-      <h1>Software anecdotes</h1>
-      <Menu />
-      <Switch>
-        <Route path='/'>
-          <AnecdoteList anecdotes={anecdotes} />
-        </Route>
-        <Route path='/create-new'>
-          <CreateNew addNew={addNew} />
-        </Route>
-        <Route path='/about'>
-          <About />
-        </Route>
-      </Switch>
+  // After useMatch(
+  const match = useMatch('/anecdotes/:id');
+  const matchedAnecdote = anecdotes.find((el) => el.id === match?.params.id);
 
-      <Footer />
-    </div>
+  // Using useContext
+  const [newAncdCreated, setNewAncdCreated] = useState('');
+
+  return (
+    <Context.Provider value={{ newAncdCreated, setNewAncdCreated }}>
+      <div>
+        <h1>Software anecdotes</h1>
+        <Menu />
+        <p>{newAncdCreated ? `New anecdote: '${newAncdCreated}' added` : ''}</p>
+
+        <Routes>
+          <Route path='/' element={<AnecdoteList anecdotes={anecdotes} />}>
+            <Route
+              path='/anecdotes/:id'
+              element={<Anecdote anecdote={matchedAnecdote} />}
+            />
+          </Route>
+          {/* For NOT nested routes */}
+          {/* <Route
+          path='/anecdotes/:id'
+          element={<Anecdote anecdote={matchedAnecdote} />}
+        /> */}
+          <Route path='/create-new' element={<CreateNew addNew={addNew} />} />
+          <Route path='/about' element={<About />} />
+        </Routes>
+
+        <Footer />
+      </div>
+    </Context.Provider>
   );
 };
 
