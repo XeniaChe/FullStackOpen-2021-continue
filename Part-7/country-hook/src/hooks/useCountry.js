@@ -8,8 +8,8 @@ export const useCountry = (name) => {
     axios
       .get(`https://restcountries.com/v2/name/${name}?fullText=true`)
       .then((response) => {
-        console.log('response', response.data);
-        setCountry(response.data);
+        // console.log('response', response.data);
+        setCountry({ ...response.data[0], found: true });
       });
   }, [name]);
 
