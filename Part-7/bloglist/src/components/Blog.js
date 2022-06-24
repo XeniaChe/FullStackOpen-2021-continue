@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import blogServices from '../services/blogs';
-import { updateBlog } from '../store/reducers/blogsReducer';
+import { updateBlog, deleteBlog } from '../store/reducers/blogsReducer';
 
 const Blog = ({ blog }) => {
   const [showMore, setShowMore] = useState(false);
@@ -77,23 +76,8 @@ const Blog = ({ blog }) => {
     display: checkingCreator() ? '' : 'none',
   };
 
-  const deleteBlogHandler = async () => {
-    try {
-      //get blog's id
-      const id = blog.id;
-      console.log(`blogs id to delete: ${id}`);
-
-      //get delete confirmation
-      const deleteConfirm = window.confirm(`Delete ${blog.title} ?`);
-
-      if (deleteConfirm) {
-        //send delete request
-        await blogServices.deleteBlog(id);
-        console.log(`blog: ${blog.title} deleted`);
-      }
-    } catch (error) {
-      console.log(error);
-    }
+  const deleteBlogHandler = () => {
+    dispatch(deleteBlog(blog));
   };
 
   return (

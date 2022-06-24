@@ -35,6 +35,11 @@ const changeLikesCount = (res) => ({
   payload: res,
 });
 
+const deleteBlogAction = (id) => ({
+  type: 'BLOGS/DELETE_BLOG',
+  payload: id,
+});
+
 let token = null;
 export const setToken = (newToken) => {
   token = `bearer ${newToken}`;
@@ -75,6 +80,36 @@ export const updateBlog = (id, updatedBlog) => {
   };
 };
 
+export const deleteBlog = (blog) => {
+  return async (dispatch) => {
+    try {
+      //get blog's id
+      const id = blog.id;
+      console.log(`blogs id to delete: ${id}`);
+
+      //get delete confirmation
+      const deleteConfirm = window.confirm(`Delete ${blog.title} ?`);
+
+      if (deleteConfirm) {
+        //sending TOKEN in request after user loged-in
+        const config = {
+          headers: { Authorization: null },
+        };
+
+        await axios.delete(`${baseUrl}/${id}`, config);
+
+        dispatch(deleteBlogAction(id));
+        dispatch(succesNotification(`blog: ${blog.title} deleted`));
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch(errorNotification(`Something went wrong`));
+    }
+
+    dispatch(clearNotif());
+  };
+};
+
 /// Reducer
 const initState = [];
 
@@ -92,6 +127,10 @@ const reducer = (state = initState, action) => {
         blog.id === action.payload.id ? { ...blog, likes: newCount } : blog
       );
       return [...blogsUpdated];
+    }
+    case 'BLOGS/DELETE_BLOG': {
+      const updatedBlogs = state.filter((blog) => blog.id !== action.payload);
+      return [...updatedBlogs];
     }
 
     default:
