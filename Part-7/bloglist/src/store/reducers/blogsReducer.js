@@ -30,6 +30,11 @@ const createNewBlog = (res) => ({
   payload: res,
 });
 
+const changeLikesCount = (res) => ({
+  type: 'BLOGS/CHANGE_LIKES_COUNT',
+  payload: res,
+});
+
 let token = null;
 export const setToken = (newToken) => {
   token = `bearer ${newToken}`;
@@ -60,6 +65,16 @@ export const sendNewBlog = (blog) => {
   };
 };
 
+export const updateBlog = (id, updatedBlog) => {
+  return async (dispatch) => {
+    console.log({ id });
+    const blogReturned = (await axios.put(`${baseUrl}/${id}`, updatedBlog))
+      .data;
+
+    dispatch(changeLikesCount({ id, blogReturned }));
+  };
+};
+
 /// Reducer
 const initState = [];
 
@@ -70,6 +85,13 @@ const reducer = (state = initState, action) => {
     }
     case 'BLOGS/ADD_NEW': {
       return [...state, action.payload];
+    }
+    case 'BLOGS/CHANGE_LIKES_COUNT': {
+      const newCount = action.payload.blogReturned.likes;
+      const blogsUpdated = state.map((blog) =>
+        blog.id === action.payload.id ? { ...blog, likes: newCount } : blog
+      );
+      return [...blogsUpdated];
     }
 
     default:

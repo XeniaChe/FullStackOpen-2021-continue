@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+
 import blogServices from '../services/blogs';
+import { updateBlog } from '../store/reducers/blogsReducer';
 
 const Blog = ({ blog }) => {
   const [showMore, setShowMore] = useState(false);
+
+  const dispatch = useDispatch();
 
   const blogStyle = {
     paddingTop: 10,
@@ -47,7 +52,7 @@ const Blog = ({ blog }) => {
       const id = blog.id;
 
       // send new blog to the server with PUT request
-      await blogServices.updateBlog(id, updatedBlog);
+      dispatch(updateBlog(id, updatedBlog));
     } catch (error) {
       console.log(error);
     }

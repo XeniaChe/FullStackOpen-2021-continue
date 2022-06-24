@@ -19,7 +19,7 @@ const Toogable = (props, ref) => {
   return (
     <div>
       <div style={hideIfVisible}>
-        <button onClick={toogleVisibility}>new note</button>
+        <button onClick={toogleVisibility}>new blog</button>
       </div>
       <div style={showIfVisible}>
         {props.children}
