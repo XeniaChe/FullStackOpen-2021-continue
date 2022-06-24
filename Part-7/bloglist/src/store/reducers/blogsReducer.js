@@ -93,7 +93,7 @@ export const deleteBlog = (blog) => {
       if (deleteConfirm) {
         //sending TOKEN in request after user loged-in
         const config = {
-          headers: { Authorization: null },
+          headers: { Authorization: token },
         };
 
         await axios.delete(`${baseUrl}/${id}`, config);
