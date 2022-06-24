@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Services
-import blogService from './services/blogs';
 import logInService from './services/login';
 
 // Components
@@ -24,19 +23,13 @@ import {
 const App = () => {
   const dispatch = useDispatch();
 
-  // const [blogs, setBlogs] = useState([]);
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
   // Redux
   const { showNotifSuccess, successMessage, errorMessage, showNotifError } =
     useSelector((state) => state.notification);
-  const { blogs, blogsError, blogAdded } = useSelector((state) => state.blogs);
-  console.log(blogs);
-  // const [showNotifSuccess, setShowNotifSuccess] = useState(false);
-  // const [showNotifError, setShowNotifError] = useState(false);
-  // const [successMessage, setSuccessMessage] = useState('');
-  // const [errorMessage, setErrorMessage] = useState('');
+  const blogs = useSelector((state) => state.blogs);
 
   //useRef to use here the method declared inside <Toogable/>
   const toogableRef = useRef();
@@ -103,31 +96,10 @@ const App = () => {
     setUser(null);
   };
 
-  const sendNewBlogHandler = async (blog, clear) => {
-    try {
-      // const newBlogReturned = await blogService.sendNewBlog(blog);
-      await dispatch(sendNewBlog(blog));
-
-      // clear();
-
-      //invoke the method for toogling visibility declared in <Toogable/>
-      toogableRef.current.toogleVisibility();
-
-      // WORKING
-      if (blogAdded.title) {
-        dispatch(
-          succesNotification(
-            `A new blog: ${blogAdded.title}  by ${blogAdded.author} added.`
-          )
-        );
-      } else {
-        dispatch(errorNotification(`Adding new blog failed`));
-      }
-    } catch (error) {
-      console.log(error);
-      dispatch(errorNotification(`${error.message}`));
-    }
-    clearNotif();
+  const sendNewBlogHandler = (blog) => {
+    dispatch(sendNewBlog(blog));
+    //invoke the method for toogling visibility declared in <Toogable/>
+    toogableRef.current.toogleVisibility();
   };
 
   const showLoginForm = () => (

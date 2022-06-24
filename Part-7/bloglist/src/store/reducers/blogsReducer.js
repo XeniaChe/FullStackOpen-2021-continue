@@ -1,6 +1,11 @@
 /// Action Types
 import axios from 'axios';
 const baseUrl = 'http://localhost:3004/api/blogs';
+import {
+  errorNotification,
+  succesNotification,
+  clearNotif,
+} from './notificationReducer';
 
 const getAllBlogs = (res) => ({
   type: 'BLOGS/GET_ALL',
@@ -37,34 +42,34 @@ export const sendNewBlog = (blog) => {
       const config = {
         headers: { Authorization: token },
       };
-      // NOT CATCHING RESPONSE.ERROR send by server!!!
-      // result is always missing in this case
-      // Tryied: 1. axios.interceptors
-      // 2. throwing error in catch block
-      // 3. dispatching action for setting errorMsg in state and pass to component for rendering.
-      // the errorMsg was not set at the expected time
-      const result = await axios.post(baseUrl, blog, config);
-      dispatch(createNewBlog(result.data));
+      const blogAdded = (await axios.post(baseUrl, blog, config)).data;
+      dispatch(createNewBlog(blogAdded));
+      dispatch(
+        // Dispatch IMPORTED successNotif action
+        succesNotification(
+          `A new blog: ${blogAdded.title}  by ${blogAdded.author} added.`
+        )
+      );
     } catch (error) {
-      console.log({ error });
+      // Dispatch IMPORTED errorNotif action
+      // Here you'd need to seaparate diff handling strategies
+      // for different types (from server/ errors caused by FE in try block ) of errors
+      dispatch(errorNotification(error.message));
     }
+    dispatch(clearNotif());
   };
 };
 
 /// Reducer
-const initState = { blogs: [], blogAdded: {} };
+const initState = [];
 
 const reducer = (state = initState, action) => {
   switch (action.type) {
     case 'BLOGS/GET_ALL': {
-      return { ...state, blogs: [...state.blogs, ...action.payload] };
+      return [...state, ...action.payload];
     }
     case 'BLOGS/ADD_NEW': {
-      return {
-        ...state,
-        blogs: [...state.blogs, action.payload],
-        blogAdded: action.payload,
-      };
+      return [...state, action.payload];
     }
 
     default:
