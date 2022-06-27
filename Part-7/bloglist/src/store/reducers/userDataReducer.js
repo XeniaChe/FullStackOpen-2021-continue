@@ -34,6 +34,25 @@ export const useExistingUser = (user) => {
   };
 };
 
+const setAllUsers = (data) => ({
+  type: 'USER/SET_ALL',
+  payload: data,
+});
+
+export const getAllUsers = () => {
+  return async (dispatch) => {
+    try {
+      const allUsers = (await axios.get(`http://localhost:3004/api/users/`))
+        .data;
+      console.log({ allUsers });
+
+      dispatch(setAllUsers(allUsers));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+};
+
 export const userLogin = (credentials) => {
   return async (dispatch) => {
     try {
@@ -61,6 +80,7 @@ const initState = {
   userName: '',
   password: '',
   user: null,
+  allUsers: [],
 };
 
 const reducer = (state = initState, action) => {
@@ -78,6 +98,9 @@ const reducer = (state = initState, action) => {
     }
     case 'USER/LOGOUT': {
       return { ...state, user: null };
+    }
+    case 'USER/SET_ALL': {
+      return { ...state, allUsers: [...action.payload] };
     }
 
     default:

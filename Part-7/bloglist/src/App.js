@@ -14,12 +14,15 @@ import {
   useExistingUser,
   userLogin,
   userLogOut,
+  getAllUsers,
 } from './store/reducers/userDataReducer';
 
 const App = () => {
   // Redux
   const dispatch = useDispatch();
-  const { user, userName, password } = useSelector((state) => state.users);
+  const { user, userName, password, allUsers } = useSelector(
+    (state) => state.users
+  );
   const { showNotifSuccess, successMessage, errorMessage, showNotifError } =
     useSelector((state) => state.notification);
   const blogs = useSelector((state) => state.blogs);
@@ -40,6 +43,8 @@ const App = () => {
       //parse back stringified user to JS object
       let user = JSON.parse(loggedUserJson);
       dispatch(useExistingUser(user));
+
+      dispatch(getAllUsers());
     }
   }, []);
 
@@ -62,6 +67,8 @@ const App = () => {
   const logInHandler = async (event) => {
     event.preventDefault();
     dispatch(userLogin({ userName, password }));
+
+    dispatch(getAllUsers());
   };
 
   //LogOut and remove user and TOKEN from localStorage
@@ -121,12 +128,33 @@ const App = () => {
     </div>
   );
 
+  const showAllUsers = () => (
+    <div>
+      <h2>Users</h2>
+      <table>
+        <tbody>
+          <tr>
+            <th></th>
+            <th>Blogs created</th>
+          </tr>
+          {allUsers.map((user) => (
+            <tr>
+              <td key={user.id}>{user.name}:</td>
+              <td>{user.blogs.length}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
     <div>
       <h2>blogs</h2>
       {showNotifSuccess && notifSuccses(successMessage)}
       {showNotifError && notifError(errorMessage)}
       {user === null ? showLoginForm() : showBlogs()}
+      {allUsers ? showAllUsers() : null}
     </div>
   );
 };
