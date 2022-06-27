@@ -2,31 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Services
-import logInService from './services/login';
 
 // Components
 import './App.css';
 import Blog from './components/Blog';
 import BlogForm from './components/BlogForm';
 import Toogable from './components/Toogable';
+import { getInitBlogs, sendNewBlog } from './store/reducers/blogsReducer';
 import {
-  succesNotification,
-  errorNotification,
-  clearNotif,
-} from './store/reducers/notificationReducer';
-import {
-  getInitBlogs,
-  setToken,
-  sendNewBlog,
-} from './store/reducers/blogsReducer';
+  setUserCredentials,
+  useExistingUser,
+  userLogin,
+  userLogOut,
+} from './store/reducers/userDataReducer';
 
 const App = () => {
-  const dispatch = useDispatch();
-
-  const [userName, setUserName] = useState('');
-  const [password, setPassword] = useState('');
-  const [user, setUser] = useState(null);
   // Redux
+  const dispatch = useDispatch();
+  const { user, userName, password } = useSelector((state) => state.users);
   const { showNotifSuccess, successMessage, errorMessage, showNotifError } =
     useSelector((state) => state.notification);
   const blogs = useSelector((state) => state.blogs);
@@ -46,8 +39,7 @@ const App = () => {
     if (loggedUserJson) {
       //parse back stringified user to JS object
       let user = JSON.parse(loggedUserJson);
-      setUser(user);
-      setToken(user.token);
+      dispatch(useExistingUser(user));
     }
   }, []);
 
@@ -69,37 +61,23 @@ const App = () => {
 
   const logInHandler = async (event) => {
     event.preventDefault();
-
-    try {
-      const user = await logInService.logIn({ userName, password });
-      setToken(user.token);
-
-      //save logged-in user to localStorage
-      window.localStorage.setItem(
-        'loggedInUserJson',
-        `${JSON.stringify(user)}`
-      );
-
-      setUser(user);
-
-      dispatch(succesNotification(`${user.name} logged-in`));
-    } catch (error) {
-      console.log(error);
-      dispatch(errorNotification(`Login failed: ${error.message}`));
-    }
-    dispatch(clearNotif());
+    dispatch(userLogin({ userName, password }));
   };
 
   //LogOut and remove user and TOKEN from localStorage
   const logOutHandler = () => {
     window.localStorage.removeItem('loggedInUserJson');
-    setUser(null);
+    dispatch(userLogOut());
   };
 
   const sendNewBlogHandler = (blog) => {
     dispatch(sendNewBlog(blog));
     //invoke the method for toogling visibility declared in <Toogable/>
     toogableRef.current.toogleVisibility();
+  };
+
+  const setUserCredentialsHandler = (type, value) => {
+    dispatch(setUserCredentials({ type, value }));
   };
 
   const showLoginForm = () => (
@@ -112,7 +90,7 @@ const App = () => {
           type='text'
           name='name'
           onInput={({ target }) => {
-            setUserName(target.value);
+            setUserCredentialsHandler('name', target.value);
           }}
         />
         <label htmlFor='password'>Password:</label>
@@ -121,7 +99,7 @@ const App = () => {
           type='password'
           name='password'
           onInput={({ target }) => {
-            setPassword(target.value);
+            setUserCredentialsHandler('password', target.value);
           }}
         />
         <button type='submit'>Log in</button>
