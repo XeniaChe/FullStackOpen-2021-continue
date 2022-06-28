@@ -1,7 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { updateBlog, deleteBlog } from '../store/reducers/blogsReducer';
+// Reducers
+import {
+  updateBlog,
+  deleteBlog,
+  sendNewBlog,
+} from '../store/reducers/blogsReducer';
+
+// Components
+import Toogable from './Toogable';
+import BlogForm from './BlogForm';
+
+export const Blogs = ({ blogs }) => {
+  //useRef to use here the method declared inside <Toogable/>
+  const toogableRef = useRef();
+  const dispatch = useDispatch();
+
+  const sendNewBlogHandler = (blog) => {
+    dispatch(sendNewBlog(blog));
+    //invoke the method for toogling visibility declared in <Toogable/>
+    toogableRef.current.toogleVisibility();
+  };
+
+  return (
+    <div>
+      {' '}
+      <h2>Blogs</h2>
+      <Toogable ref={toogableRef}>
+        <BlogForm sendBlog={sendNewBlogHandler} />
+      </Toogable>
+      {blogs.map((blog) => (
+        <Blog key={blog.id} blog={blog} />
+      ))}
+    </div>
+  );
+};
 
 const Blog = ({ blog }) => {
   const [showMore, setShowMore] = useState(false);

@@ -31,8 +31,6 @@ const App = () => {
     useSelector((state) => state.notification);
   const blogs = useSelector((state) => state.blogs);
 
-  //useRef to use here the method declared inside <Toogable/>
-
   /// ROUTING
   // To define a currently clicked item
   const match = useMatch('/:userId');
@@ -41,6 +39,7 @@ const App = () => {
     : null;
 
   useEffect(() => {
+    // get init blogs
     dispatch(getInitBlogs());
   }, []);
 
@@ -87,12 +86,6 @@ const App = () => {
     dispatch(userLogOut());
   };
 
-  const sendNewBlogHandler = (blog) => {
-    dispatch(sendNewBlog(blog));
-    //invoke the method for toogling visibility declared in <Toogable/>
-    toogableRef.current.toogleVisibility();
-  };
-
   const setUserCredentialsHandler = (type, value) => {
     dispatch(setUserCredentials({ type, value }));
   };
@@ -124,43 +117,18 @@ const App = () => {
     </div>
   );
 
-  const showBlogs = () => (
-    <div>
-      {' '}
+  const showUserInfo = () => (
+    <>
       <h4>{user.username} is logged-in</h4>
       <button onClick={logOutHandler}>log out</button>
-      <Toogable ref={toogableRef}>
-        <BlogForm sendBlog={sendNewBlogHandler} />
-      </Toogable>
-      {blogs.map((blog) => (
-        <Blog key={blog.id} blog={blog} />
-      ))}
-    </div>
-  );
-
-  const showAllUsers = () => (
-    <div>
-      <h2>Users</h2>
-      <table>
-        <tbody>
-          <tr>
-            <th></th>
-            <th>Blogs created</th>
-          </tr>
-          {allUsers.map((user) => (
-            <tr>
-              <td key={user.id}>{user.name}:</td>
-              <td>{user.blogs.length}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+      <NavLink to='/blogs'>Show blogs</NavLink>
+    </>
   );
 
   return (
     <div>
-      <h2>blogs</h2>
+      {user ? showUserInfo() : showLoginForm()}
+
       {showNotifSuccess && notifSuccses(successMessage)}
       {showNotifError && notifError(errorMessage)}
 
