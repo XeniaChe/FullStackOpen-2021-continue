@@ -11,6 +11,7 @@ import {
 // Components
 import Toogable from './Toogable';
 import BlogForm from './BlogForm';
+import { NavLink } from 'react-router-dom';
 
 export const Blogs = ({ blogs }) => {
   //useRef to use here the method declared inside <Toogable/>
@@ -31,15 +32,15 @@ export const Blogs = ({ blogs }) => {
         <BlogForm sendBlog={sendNewBlogHandler} />
       </Toogable>
       {blogs.map((blog) => (
-        <Blog key={blog.id} blog={blog} />
+        <NavLink to={`/blogs/${blog.id}`} key={blog.id}>
+          <p>{blog.title}</p>
+        </NavLink>
       ))}
     </div>
   );
 };
 
 const Blog = ({ blog }) => {
-  const [showMore, setShowMore] = useState(false);
-
   const dispatch = useDispatch();
 
   const blogStyle = {
@@ -56,13 +57,6 @@ const Blog = ({ blog }) => {
 
   const delButtonStyle = {
     backgroundColor: 'blue',
-  };
-
-  let label = !showMore ? 'view' : 'hide';
-  const visibleIfShowMore = { display: showMore ? '' : 'none' };
-
-  const toogleShow = () => {
-    setShowMore(!showMore);
   };
 
   const likesPlusOne = (oldCount) => ++oldCount;
@@ -116,25 +110,22 @@ const Blog = ({ blog }) => {
 
   return (
     <div style={blogStyle} className='testVisible'>
-      <p>{blog.title}</p>
-      <p>author: {blog.author}</p>
-      <button onClick={toogleShow}>{label}</button>
-      <div style={visibleIfShowMore} className='testInvisible'>
-        <p>{blog.url}</p>
-        <div style={likesBoxStyle}>
-          <p id='likes'>likes: {blog.likes} </p>
-          <button onClick={increaseLikesHandler} id='likeBtn'>
-            like
-          </button>
-        </div>
-        <button
-          onClick={deleteBlogHandler}
-          style={showIfCretorMatches}
-          id='deleteBlog'
-        >
-          remove
+      <h3>{blog.title}</h3>
+      <p>{blog.url}</p>
+      <div style={likesBoxStyle}>
+        <p id='likes'>likes: {blog.likes} </p>
+        <button onClick={increaseLikesHandler} id='likeBtn'>
+          like
         </button>
+        <p>Added by: {blog.author}</p>
       </div>
+      <button
+        onClick={deleteBlogHandler}
+        style={showIfCretorMatches}
+        id='deleteBlog'
+      >
+        remove
+      </button>
     </div>
   );
 };

@@ -7,9 +7,7 @@ import { Routes, Route, useMatch, NavLink } from 'react-router-dom';
 // Components
 import './App.css';
 import Blog, { Blogs } from './components/Blog';
-import BlogForm from './components/BlogForm';
-import Toogable from './components/Toogable';
-import { getInitBlogs, sendNewBlog } from './store/reducers/blogsReducer';
+import { getInitBlogs } from './store/reducers/blogsReducer';
 import { Users, User } from './components/Users';
 
 // Redux
@@ -33,9 +31,14 @@ const App = () => {
 
   /// ROUTING
   // To define a currently clicked item
-  const match = useMatch('/:userId');
-  const userClicked = match
-    ? allUsers.find((user) => user.id === match.params.userId)
+  const matchUser = useMatch('/:userId');
+  const userClicked = matchUser
+    ? allUsers.find((user) => user.id === matchUser.params.userId)
+    : null;
+
+  const blogMatch = useMatch('/blogs/:blogId');
+  const blogClicked = blogMatch
+    ? blogs.find((blog) => blog.id === blogMatch.params.blogId)
     : null;
 
   useEffect(() => {
@@ -134,8 +137,15 @@ const App = () => {
 
       <Routes>
         <Route path='/' element={user === null ? null : <Users />} />
+        <Route
+          path=':userId'
+          element={userClicked === null ? null : <User user={userClicked} />}
+        />
         <Route path='blogs' element={<Blogs blogs={blogs} />} />
-        <Route path=':userId' element={<User user={userClicked} />} />
+        <Route
+          path='blogs/:blogId'
+          element={blogClicked === null ? null : <Blog blog={blogClicked} />}
+        />
       </Routes>
     </div>
   );
