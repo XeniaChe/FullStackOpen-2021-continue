@@ -1,14 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Routes, Route, useMatch, NavLink } from 'react-router-dom';
 
 // Services
 
 // Components
 import './App.css';
-import Blog from './components/Blog';
+import Blog, { Blogs } from './components/Blog';
 import BlogForm from './components/BlogForm';
 import Toogable from './components/Toogable';
 import { getInitBlogs, sendNewBlog } from './store/reducers/blogsReducer';
+import { Users, User } from './components/Users';
+
+// Redux
 import {
   setUserCredentials,
   useExistingUser,
@@ -28,7 +32,13 @@ const App = () => {
   const blogs = useSelector((state) => state.blogs);
 
   //useRef to use here the method declared inside <Toogable/>
-  const toogableRef = useRef();
+
+  /// ROUTING
+  // To define a currently clicked item
+  const match = useMatch('/:userId');
+  const userClicked = match
+    ? allUsers.find((user) => user.id === match.params.userId)
+    : null;
 
   useEffect(() => {
     dispatch(getInitBlogs());
@@ -153,8 +163,12 @@ const App = () => {
       <h2>blogs</h2>
       {showNotifSuccess && notifSuccses(successMessage)}
       {showNotifError && notifError(errorMessage)}
-      {user === null ? showLoginForm() : showBlogs()}
-      {allUsers ? showAllUsers() : null}
+
+      <Routes>
+        <Route path='/' element={user === null ? null : <Users />} />
+        <Route path='blogs' element={<Blogs blogs={blogs} />} />
+        <Route path=':userId' element={<User user={userClicked} />} />
+      </Routes>
     </div>
   );
 };
