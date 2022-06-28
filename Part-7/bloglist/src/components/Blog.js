@@ -11,7 +11,7 @@ import {
 // Components
 import Toogable from './Toogable';
 import BlogForm from './BlogForm';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 export const Blogs = ({ blogs }) => {
   //useRef to use here the method declared inside <Toogable/>
@@ -42,6 +42,9 @@ export const Blogs = ({ blogs }) => {
 
 const Blog = ({ blog }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  if (!blog) return null;
 
   const blogStyle = {
     paddingTop: 10,
@@ -106,6 +109,7 @@ const Blog = ({ blog }) => {
 
   const deleteBlogHandler = () => {
     dispatch(deleteBlog(blog));
+    navigate('/blogs');
   };
 
   return (
