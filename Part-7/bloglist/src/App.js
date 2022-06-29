@@ -31,7 +31,7 @@ const App = () => {
 
   /// ROUTING
   // To define a currently clicked item
-  const matchUser = useMatch('/:userId');
+  const matchUser = useMatch('users/:userId');
   const userClicked = matchUser
     ? allUsers.find((user) => user.id === matchUser.params.userId)
     : null;
@@ -121,11 +121,14 @@ const App = () => {
   );
 
   const showUserInfo = () => (
-    <>
-      <h4>{user.username} is logged-in</h4>
-      <button onClick={logOutHandler}>log out</button>
-      <NavLink to='/blogs'>Show blogs</NavLink>
-    </>
+    <div>
+      <nav>
+        <NavLink to='users'>Users</NavLink>
+        <NavLink to='blogs'>Blogs</NavLink>
+        <button onClick={logOutHandler}>log out</button>
+        <p>{user.username} is logged-in</p>
+      </nav>
+    </div>
   );
 
   return (
@@ -136,12 +139,12 @@ const App = () => {
       {showNotifError && notifError(errorMessage)}
 
       <Routes>
-        <Route path='/' element={user === null ? null : <Users />} />
+        <Route path='blogs' element={<Blogs blogs={blogs} />} />
+        <Route path='users' element={user === null ? null : <Users />} />
         <Route
-          path=':userId'
+          path='users/:userId'
           element={userClicked === null ? null : <User user={userClicked} />}
         />
-        <Route path='blogs' element={<Blogs blogs={blogs} />} />
         <Route
           path='blogs/:blogId'
           element={blogClicked === null ? null : <Blog blog={blogClicked} />}
