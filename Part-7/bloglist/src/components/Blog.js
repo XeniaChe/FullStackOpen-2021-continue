@@ -44,6 +44,8 @@ const Blog = ({ blog }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [newComment, setNewComment] = useState('');
+
   if (!blog) return null;
 
   const blogStyle = {
@@ -112,6 +114,14 @@ const Blog = ({ blog }) => {
     navigate('/blogs');
   };
 
+  const setNewCommentHandler = (event) => {
+    setNewComment(event.target.value);
+  };
+
+  const sendNewCommentHandler = (newComment) => {
+    console.log(`Cooment to send: ${newComment}`);
+  };
+
   return (
     <div style={blogStyle} className='testVisible'>
       <h3>{blog.title}</h3>
@@ -122,6 +132,25 @@ const Blog = ({ blog }) => {
           like
         </button>
         <p>Added by: {blog.author}</p>
+      </div>
+      <div>
+        <h3>comments</h3>
+        <ul>
+          {blog.comments.map((comment) => (
+            <li>{comment}</li>
+          ))}
+        </ul>
+        <label htmlFor='comment'>Add a comment</label>
+        <input
+          type='text'
+          name='comment'
+          id='comment'
+          value={newComment}
+          onChange={setNewCommentHandler}
+        />
+        <button onClick={() => sendNewCommentHandler(newComment)}>
+          Add a comment
+        </button>
       </div>
       <button
         onClick={deleteBlogHandler}
