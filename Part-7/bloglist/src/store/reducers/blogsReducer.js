@@ -40,6 +40,11 @@ const deleteBlogAction = (id) => ({
   payload: id,
 });
 
+const addNewComment = (res) => ({
+  type: 'BLOGS/ADD_NEW_COMMENT',
+  payload: res,
+});
+
 let token = null;
 export const setToken = (newToken) => {
   token = `bearer ${newToken}`;
@@ -72,11 +77,14 @@ export const sendNewBlog = (blog) => {
 
 export const updateBlog = (id, updatedBlog) => {
   return async (dispatch) => {
-    console.log({ id });
-    const blogReturned = (await axios.put(`${baseUrl}/${id}`, updatedBlog))
-      .data;
+    try {
+      const blogReturned = (await axios.put(`${baseUrl}/${id}`, updatedBlog))
+        .data;
 
-    dispatch(changeLikesCount({ id, blogReturned }));
+      dispatch(changeLikesCount({ id, blogReturned }));
+    } catch (error) {
+      console.error(error);
+    }
   };
 };
 
@@ -110,6 +118,27 @@ export const deleteBlog = (blog) => {
   };
 };
 
+export const sendNewComment = (id, newComment, blogToUpdate) => {
+  return async (dispatch) => {
+    try {
+      const config = {
+        headers: { Authorization: token },
+      };
+
+      const response = (
+        await axios.post(`${baseUrl}/${id}/comments`, {
+          newComment,
+          config,
+        })
+      ).data;
+
+      dispatch(addNewComment(response));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+};
+
 /// Reducer
 const initState = [];
 
@@ -131,6 +160,19 @@ const reducer = (state = initState, action) => {
     case 'BLOGS/DELETE_BLOG': {
       const updatedBlogs = state.filter((blog) => blog.id !== action.payload);
       return [...updatedBlogs];
+    }
+    case 'BLOGS/ADD_NEW_COMMENT': {
+      const match = state.find((blog) => blog.id === action.payload.blog);
+      const bloToUpdate = { ...match };
+
+      bloToUpdate.comments = bloToUpdate.comments.concat(action.payload);
+
+      const blogsUpdated = state.map((blog) =>
+        blog.id === bloToUpdate.id
+          ? { ...blog, comments: bloToUpdate.comments }
+          : blog
+      );
+      return [...blogsUpdated];
     }
 
     default:

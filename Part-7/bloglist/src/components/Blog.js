@@ -6,6 +6,7 @@ import {
   updateBlog,
   deleteBlog,
   sendNewBlog,
+  sendNewComment,
 } from '../store/reducers/blogsReducer';
 
 // Components
@@ -118,8 +119,8 @@ const Blog = ({ blog }) => {
     setNewComment(event.target.value);
   };
 
-  const sendNewCommentHandler = (newComment) => {
-    console.log(`Cooment to send: ${newComment}`);
+  const sendNewCommentHandler = async (id, newComment) => {
+    dispatch(sendNewComment(id, newComment));
   };
 
   return (
@@ -137,7 +138,7 @@ const Blog = ({ blog }) => {
         <h3>comments</h3>
         <ul>
           {blog.comments.map((comment) => (
-            <li>{comment}</li>
+            <li key={comment.id}>{comment.content}</li>
           ))}
         </ul>
         <label htmlFor='comment'>Add a comment</label>
@@ -148,7 +149,7 @@ const Blog = ({ blog }) => {
           value={newComment}
           onChange={setNewCommentHandler}
         />
-        <button onClick={() => sendNewCommentHandler(newComment)}>
+        <button onClick={() => sendNewCommentHandler(blog.id, newComment)}>
           Add a comment
         </button>
       </div>
