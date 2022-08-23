@@ -72,33 +72,49 @@ const resolvers = {
   },
   Mutation: {
     addBook: async (_, args) => {
-      const authorMatch = await Author.findOne({ name: args.author });
+      try {
+        let authorMatch = await Author.findOne({ name: args.author });
+        if (!authorMatch)
+          authorMatch = await Author.create({ name: args.author });
 
-      const newBook = new Book({
-        title: args.title,
-        published: args.published,
-        genres: args.genres,
-        author: authorMatch.id,
-      });
+        const newBook = new Book({
+          title: args.title,
+          published: args.published,
+          genres: args.genres,
+          author: authorMatch.id,
+        });
 
-      const books = await Book.find({});
-      if (
-        !books.some(
-          (book) => book.title === args.title && book.author === args.author
+        const books = await Book.find({});
+        if (
+          !books.some(
+            (book) => book.title === args.title && book.author === args.author
+          )
         )
-      )
-        await newBook.save();
+          await newBook.save();
 
-      return newBook;
+        return newBook;
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: Object.keys(args),
+        });
+      }
     },
     editAuthor: async (_, args) => {
-      const authToUpd = await Author.findOneAndUpdate(
-        { name: args.name },
-        { born: args.born },
-        { new: true }
-      );
+      try {
+        const authToUpd = await Author.findOneAndUpdate(
+          { name: args.name },
+          { born: args.born },
+          { new: true }
+        );
 
-      return authToUpd;
+        if (!authToUpd) throw new Error('Author is not found ');
+
+        return authToUpd;
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: Object.keys(args),
+        });
+      }
     },
   },
 };
@@ -131,6 +147,7 @@ server.listen({ port: 4001 }).then(({ url }) => {
     allBooks: (root, args) => books,
     // books.filter(
     //     (book) =>
+
     //       book.author === args.author &&
     //       (args.genre ? book.genres.includes(args.genre) : true)
     //   ) 
