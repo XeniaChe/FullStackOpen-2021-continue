@@ -1,11 +1,17 @@
 const { ApolloServer, UserInputError, gql } = require('apollo-server');
 const Book = require('./models/book');
 const Author = require('./models/author');
+const User = require('./models/user');
 const mongoose = require('mongoose');
 /* const { populateBooks, populateAuthors } = require('./initData'); */
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const MONGODB_URL =
   'mongodb+srv://mongo-start-user:resu-trats-ognom@cluster1.qm9gg.mongodb.net/library-GQL?retryWrites=true&w=majority';
+
+const SECRET_FOR_TOKEN = 'this_must_be_a_secret';
 
 console.log(`Connecting to:  ${MONGODB_URL}`);
 
@@ -23,28 +29,50 @@ const typeDefs = gql`
     title: String!
     published: Int!
     author: Author!
-    id: ID
+    id: ID!
     genres: [String!]
   }
+
   type Author {
     name: String!
     born: Int
     bookCount: Int
+    id: ID!
   }
+
+  type User {
+    username: String!
+    favouriteGenre: String!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
+  }
+
   type Query {
     bookCount: Int!
     authorCount: Int!
     allBooks: [Book!]!
     allAuthors: [Author!]!
+    me(id: String!): User
   }
+
   type Mutation {
     addBook(
       title: String!
       published: Int!
       author: String!
       genres: [String!]
+      token: String!
     ): Book
-    editAuthor(name: String!, born: Int!): Author
+    editAuthor(name: String!, born: Int!, token: String!): Author
+    createUser(
+      username: String!
+      favouriteGenre: String!
+      password: String!
+    ): User
+    login(userName: String!, password: String!): Token
   }
 `;
 
@@ -59,23 +87,40 @@ const booksCountHandler = async (id) => {
     throw new Error(error.message);
   }
 };
+
 const resolvers = {
   Author: {
     bookCount: async (root) => await booksCountHandler(root.id),
   },
+
   Query: {
     bookCount: async () => await Book.countDocuments(),
     authorCount: async () => await Author.countDocuments(),
     allBooks: async () => await Book.find({}).populate('author'),
     allAuthors: async () =>
       allAuthors.length ? allAuthors : getAllAuthorsInit(),
+    me: async (_, args) => {
+      try {
+        const me = await User.findOne({ id: args.id });
+
+        if (!me) throw new Error('User not found');
+
+        return me;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
   },
+
   Mutation: {
     addBook: async (_, args) => {
       try {
         let authorMatch = await Author.findOne({ name: args.author });
         if (!authorMatch)
           authorMatch = await Author.create({ name: args.author });
+
+        const { username, id } = jwt.verify(args.token, SECRET_FOR_TOKEN);
+        if (!username || !id) throw new Error('Unauthenticated');
 
         const newBook = new Book({
           title: args.title,
@@ -99,6 +144,7 @@ const resolvers = {
         });
       }
     },
+
     editAuthor: async (_, args) => {
       try {
         const authToUpd = await Author.findOneAndUpdate(
@@ -114,6 +160,53 @@ const resolvers = {
         throw new UserInputError(error.message, {
           invalidArgs: Object.keys(args),
         });
+      }
+    },
+
+    createUser: async (_, args) => {
+      const passHash = await bcrypt.hash(args.password, saltRounds);
+
+      const newUser = new User({
+        username: args.username,
+        favouriteGenre: args.favouriteGenre,
+        passwordHash: passHash,
+      });
+
+      try {
+        await newUser.save();
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: Object.keys(args),
+        });
+      }
+
+      return newUser;
+    },
+
+    login: async (_, args) => {
+      try {
+        const userMatch = await User.findOne({ username: args.userName });
+
+        if (!userMatch)
+          throw new Error('Please sign up to continue using the platform');
+
+        const passwordCorrect = await bcrypt.compare(
+          args.password,
+          userMatch.passwordHash
+        );
+
+        if (!passwordCorrect) throw new Error('Wrong credentials');
+
+        const userForToken = {
+          username: args.userName,
+          id: userMatch.id,
+        };
+
+        const token = jwt.sign(userForToken, SECRET_FOR_TOKEN);
+
+        return { value: token };
+      } catch (error) {
+        throw new Error(error.message);
       }
     },
   },
