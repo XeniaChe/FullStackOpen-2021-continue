@@ -1,4 +1,9 @@
-const { ApolloServer, UserInputError, gql } = require('apollo-server');
+const {
+  ApolloServer,
+  UserInputError,
+  gql,
+  AuthenticationError,
+} = require('apollo-server');
 const Book = require('./models/book');
 const Author = require('./models/author');
 const User = require('./models/user');
@@ -55,7 +60,7 @@ const typeDefs = gql`
     authorCount: Int!
     allBooks: [Book!]!
     allAuthors: [Author!]!
-    me(id: String!): User
+    me: User!
   }
 
   type Mutation {
@@ -99,28 +104,18 @@ const resolvers = {
     allBooks: async () => await Book.find({}).populate('author'),
     allAuthors: async () =>
       allAuthors.length ? allAuthors : getAllAuthorsInit(),
-    me: async (_, args) => {
-      try {
-        const me = await User.findOne({ id: args.id });
-
-        if (!me) throw new Error('User not found');
-
-        return me;
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    },
+    me: async (_, args, { currentUser }) => currentUser,
   },
 
   Mutation: {
-    addBook: async (_, args) => {
+    addBook: async (_, args, { currentUser }) => {
+      if (!currentUser)
+        throw new AuthenticationError('Not authenticated. Bad credentials.');
+
       try {
         let authorMatch = await Author.findOne({ name: args.author });
         if (!authorMatch)
           authorMatch = await Author.create({ name: args.author });
-
-        const { username, id } = jwt.verify(args.token, SECRET_FOR_TOKEN);
-        if (!username || !id) throw new Error('Unauthenticated');
 
         const newBook = new Book({
           title: args.title,
@@ -145,7 +140,10 @@ const resolvers = {
       }
     },
 
-    editAuthor: async (_, args) => {
+    editAuthor: async (_, args, { currentUser }) => {
+      if (!currentUser)
+        throw new AuthenticationError('Not authenticated. Bad credentials.');
+
       try {
         const authToUpd = await Author.findOneAndUpdate(
           { name: args.name },
@@ -215,6 +213,18 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  context: async ({ req }) => {
+    const auth = req ? req.headers.authorization : null;
+
+    if (auth && auth.toLowerCase().startsWith('bearer')) {
+      const token = auth.substring(7);
+      const decoded = jwt.verify(token, SECRET_FOR_TOKEN);
+
+      const currentUser = await User.findById(decoded.id);
+
+      return { currentUser };
+    }
+  },
 });
 
 server.listen({ port: 4001 }).then(({ url }) => {
