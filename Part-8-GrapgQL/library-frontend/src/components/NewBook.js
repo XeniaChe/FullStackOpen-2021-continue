@@ -2,16 +2,29 @@ import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { ADD_NEW_BOOK, GET_ALL_BOOKS, GET_ALL_AUTHORS } from '../queries';
 
-const NewBook = (props) => {
+const NewBook = ({ show, setPage }) => {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [published, setPublished] = useState('');
   const [genre, setGenre] = useState('');
   const [genres, setGenres] = useState([]);
 
-  const [createNedwBookHandler] = useMutation(ADD_NEW_BOOK);
+  // TODO:
+  // optimaze updating the cache
+  const [createNedwBookHandler, { data, error }] = useMutation(ADD_NEW_BOOK, {
+    refetchQueries: [{ query: GET_ALL_AUTHORS }, { query: GET_ALL_BOOKS }],
+    /* update: (cache, response) => {
+      // Can NOT update 2 fileds (2 query results)
+      cache.updateQuery(
+        { query: GET_ALL_BOOKS },
+        ({ allBooks }) => ({
+          allBooks: allBooks.concat(response.data.addBook),
+        })
+      );
+    }, */
+  });
 
-  if (!props.show) {
+  if (!show) {
     return null;
   }
 
@@ -20,7 +33,6 @@ const NewBook = (props) => {
 
     createNedwBookHandler({
       variables: { title, author, published, genres },
-      refetchQueries: [{ query: GET_ALL_AUTHORS }, { query: GET_ALL_BOOKS }],
     });
 
     setTitle('');
@@ -29,6 +41,9 @@ const NewBook = (props) => {
     setGenres([]);
     setGenre('');
   };
+
+  if (data) setPage('authors'); // GO back to 'books' page
+  if (error) return <p>{error.message}</p>;
 
   const addGenre = () => {
     setGenres(genres.concat(genre));
