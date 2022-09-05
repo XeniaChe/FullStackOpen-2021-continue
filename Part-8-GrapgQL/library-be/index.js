@@ -8,7 +8,12 @@ const Book = require('./models/book');
 const Author = require('./models/author');
 const User = require('./models/user');
 const mongoose = require('mongoose');
-/* const { populateBooks, populateAuthors } = require('./initData'); */
+const {
+  populateBooks,
+  populateAuthors,
+  deleteTrashBook,
+  deleteTrashAuthor,
+} = require('./initData');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -26,8 +31,12 @@ mongoose
   .catch((error) => console.log(`Connection failed:`));
 
 // Create Init Data. ONLY ONCE
-/* populateAuthors();
-populateBooks(); */
+// populateAuthors();
+// populateBooks();
+
+// Clean the db
+// deleteTrashBook();
+// deleteTrashAuthor();
 
 const typeDefs = gql`
   type Book {
@@ -61,6 +70,7 @@ const typeDefs = gql`
     allBooks: [Book!]!
     allAuthors: [Author!]!
     me: User!
+    filteredBooks(filter: String!): [Book!]!
   }
 
   type Mutation {
@@ -69,7 +79,6 @@ const typeDefs = gql`
       published: Int!
       author: String!
       genres: [String!]
-      token: String!
     ): Book
     editAuthor(name: String!, born: Int!, token: String!): Author
     createUser(
@@ -105,6 +114,8 @@ const resolvers = {
     allAuthors: async () =>
       allAuthors.length ? allAuthors : getAllAuthorsInit(),
     me: async (_, args, { currentUser }) => currentUser,
+    filteredBooks: async (_, args) =>
+      await Book.find({ genres: { $in: [args.filter] } }).populate('author'),
   },
 
   Mutation: {
@@ -130,7 +141,7 @@ const resolvers = {
             (book) => book.title === args.title && book.author === args.author
           )
         )
-          await newBook.save();
+          await (await newBook.save()).populate('author');
 
         return newBook;
       } catch (error) {

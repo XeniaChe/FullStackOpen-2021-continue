@@ -1,29 +1,37 @@
 const Book = require('./models/book');
 const Author = require('./models/author');
 
+const authorsInit = [
+  {
+    name: 'Robert Martin',
+    born: 1952,
+  },
+  {
+    name: 'Martin Fowler',
+    born: 1963,
+  },
+  {
+    name: 'Fyodor Dostoevsky',
+    born: 1821,
+  },
+  {
+    name: 'Joshua Kerievsky',
+  },
+  {
+    name: 'Sandi Metz',
+  },
+];
 // Populate authors coll-n with init data
 const populateAuthors = async () => {
-  await Author.create([
-    {
-      name: 'Robert Martin',
-      born: 1952,
-    },
-    {
-      name: 'Martin Fowler',
-      born: 1963,
-    },
-    {
-      name: 'Fyodor Dostoevsky',
-      born: 1821,
-    },
-    {
-      name: 'Joshua Kerievsky',
-    },
-    {
-      name: 'Sandi Metz',
-    },
-  ]);
+  await Author.create(authorsInit);
 };
+
+const deleteTrashAuthor = async () =>
+  await Author.deleteMany({
+    name: {
+      $nin: authorsInit.map((auth) => auth.name),
+    },
+  });
 
 const getAuthors = async () => {
   const authArr = await Author.find({});
@@ -36,10 +44,9 @@ const getAuthors = async () => {
   return authObj;
 };
 
-const populateBooks = async () => {
+const getBooksInit = async () => {
   const authorsObj = await getAuthors();
-
-  await Book.create([
+  const res = [
     {
       title: 'Clean Code',
       published: 2008,
@@ -82,7 +89,30 @@ const populateBooks = async () => {
       author: authorsObj['Fyodor Dostoevsky'].id,
       genres: ['classic', 'revolution'],
     },
-  ]);
+  ];
+
+  return res;
 };
 
-module.exports = { populateAuthors, populateBooks };
+const populateBooks = async () => {
+  const booksInit = await getBooksInit();
+
+  await Book.create(booksInit);
+};
+
+const deleteTrashBook = async () => {
+  const booksInit = await getBooksInit();
+
+  return await Book.deleteMany({
+    title: {
+      $nin: booksInit.map((book) => book.title),
+    },
+  });
+};
+
+module.exports = {
+  populateAuthors,
+  populateBooks,
+  deleteTrashBook,
+  deleteTrashAuthor,
+};
