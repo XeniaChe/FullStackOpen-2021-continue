@@ -7,7 +7,7 @@ import Recommended from './components/REcommendation';
 
 // Queries
 import { useQuery } from '@apollo/client';
-import { GET_ALL_AUTHORS, GET_ALL_BOOKS } from './queries';
+import { GET_ALL_AUTHORS, GET_ALL_BOOKS, NEW_BOOK_SUBSCRIBE } from './queries';
 
 const App = () => {
   const [page, setPage] = useState('authors');
@@ -26,7 +26,21 @@ const App = () => {
   }
 
   let books = [];
-  const { data: booksData } = useQuery(GET_ALL_BOOKS);
+  const { data: booksData, subscribeToMore } = useQuery(GET_ALL_BOOKS); // subscribeToMore will be called in Books.js
+  const callSubscribeToMore = () => {
+    subscribeToMore({
+      document: NEW_BOOK_SUBSCRIBE,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev;
+        const newBook = subscriptionData.data.bookAdded;
+
+        return Object.assign({}, prev, {
+          allBooks: [...prev.allBooks, newBook],
+        });
+      },
+    });
+  };
+
   if (booksData) {
     books = booksData.allBooks;
   }
@@ -48,7 +62,11 @@ const App = () => {
       </div>
       <Authors show={page === 'authors'} authors={authors} />
 
-      <Books show={page === 'books'} books={books} />
+      <Books
+        show={page === 'books'}
+        books={books}
+        callSubscribeToMore={callSubscribeToMore}
+      />
 
       <NewBook show={page === 'add'} setPage={setPage} />
 

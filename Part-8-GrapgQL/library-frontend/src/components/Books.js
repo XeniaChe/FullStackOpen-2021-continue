@@ -1,11 +1,17 @@
 import { useQuery } from '@apollo/client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Query
 import { GET_FILTERED_BOOKS } from '../queries';
 
-const Books = ({ books, show }) => {
+const Books = ({ books, show, callSubscribeToMore }) => {
   const [filter, setFilter] = useState('');
+
+  // Subscribe to NEW_BOOK_SUBSCRIBE subscription
+  // And update allBooks in cache with new data
+  useEffect(() => {
+    callSubscribeToMore();
+  }, []);
 
   const { data } = useQuery(GET_FILTERED_BOOKS, {
     variables: { filter },
