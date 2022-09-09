@@ -11,20 +11,23 @@ const Author = require('./models/author');
 const User = require('./models/user');
 
 let allAuthors = [];
-const getAllAuthorsInit = async () => await Author.find({});
+const getAllAuthorsInit = async () => await Author.find({}).populate('books');
 
-const booksCountHandler = async (id) => {
+// Before N+1 solved
+/* const booksCountHandler = async (id) => {
   try {
     const allBooks = await Book.find({ author: id });
     return allBooks.length;
   } catch (error) {
     throw new Error(error.message);
   }
-};
+}; */
 
 const resolvers = {
   Author: {
-    bookCount: async (root) => await booksCountHandler(root.id),
+    // Before N+1 solved
+    // bookCount: async (root) => await booksCountHandler(root.id),
+    bookCount: (root) => root.books.length,
   },
 
   Query: {
@@ -60,8 +63,13 @@ const resolvers = {
           !books.some(
             (book) => book.title === args.title && book.author === args.author
           )
-        )
-          await (await newBook.save()).populate('author');
+        ) {
+          const bookSaved = await (await newBook.save()).populate('author');
+
+          // Add newBook to author's 'books' list
+          authorMatch.books = authorMatch.books.concat(bookSaved.id);
+          await authorMatch.save();
+        }
 
         pubsub.publish('BOOK_ADDED', { bookAdded: newBook });
 

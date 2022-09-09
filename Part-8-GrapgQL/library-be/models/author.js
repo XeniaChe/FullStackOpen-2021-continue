@@ -14,6 +14,10 @@ const schema = new mongoose.Schema({
     type: Number,
     required: false,
   },
+  books: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Book',
+  },
 });
 
 module.exports = mongoose.model('Author', schema);
