@@ -12,13 +12,13 @@ const NewBook = ({ show, setPage }) => {
   // TODO:
   // optimaze updating the cache
   const [createNedwBookHandler, { data, error }] = useMutation(ADD_NEW_BOOK, {
-    refetchQueries: [{ query: GET_ALL_AUTHORS } /* { query: GET_ALL_BOOKS } */],
-    update: (cache, response) => {
-      // Can NOT update 2 fileds (2 query results)
+    refetchQueries: [{ query: GET_ALL_AUTHORS }, { query: GET_ALL_BOOKS }],
+    // OR
+    /* update: (cache, response) => {
       cache.updateQuery({ query: GET_ALL_BOOKS }, ({ allBooks }) => ({
         allBooks: allBooks.concat(response.data.addBook),
       }));
-    },
+    }, */
   });
 
   if (!show) {
